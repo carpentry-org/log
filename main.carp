@@ -3,6 +3,11 @@
                     file String
                     line Int])
 
+(defmodule LogRecord
+  (defn pretty [r]
+    (fmt "%s:%d: %s" (file r) (line r) (msg r)))
+)
+
 (definterface log (Fn [a LogRecord] ()))
 
 (deftype NopLog [])
