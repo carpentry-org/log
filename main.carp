@@ -1,0 +1,47 @@
+(deftype LogRecord [level Int
+                    msg String
+                    file String
+                    line Int])
+
+(definterface log (Fn [a LogRecord] ()))
+
+(deftype NopLog [])
+
+(defmodule NopLog
+  (defn log [l r] ())
+)
+
+(defmodule Log
+  (def TRACE 1)
+  (def DEBUG 2)
+  (def INFO 3)
+  (def WARN 4)
+  (def ERROR 5)
+  (def OFF 6)
+
+  (private LOGGER)
+  (def LOGGER (NopLog.init))
+
+  (doc set-logger "Sets the system logger to `l`.")
+  (defn set-logger [l]
+    (set! LOGGER l))
+
+  (hidden priv-log)
+  (defn priv-log [msg lvl file line]
+    (log &LOGGER (LogRecord.init lvl msg @file line)))
+
+  (defmacro error [msg :rest args]
+    (list 'Log.priv-log (list 'fmt msg args) 'Log.ERROR (file) (line)))
+
+  (defmacro warn [msg :rest args]
+    (list 'Log.priv-log (list 'fmt msg args) 'Log.WARN (file) (line)))
+
+  (defmacro info [msg :rest args]
+    (list 'Log.priv-log (list 'fmt msg args) 'Log.INFO (file) (line)))
+
+  (defmacro debug [msg :rest args]
+    (list 'Log.priv-log (list 'fmt msg args) 'Log.DEBUG (file) (line)))
+
+  (defmacro trace [msg :rest args]
+    (list 'Log.priv-log (list 'fmt msg args) 'Log.TRACE (file) (line)))
+)
