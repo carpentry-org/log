@@ -32,6 +32,13 @@ The complete set of functions, in order of severity, is:
 - `warn`
 - `error`
 
+## Backends
+
+A non-exhaustive list of logging backends:
+
+- [`simplelog`](https://github.com/carpentry-org/simplelog): A simple logger
+  that prints either to `stdout` or `stderror`, depending on the log level.
+
 <hr/>
 
 Have fun!
