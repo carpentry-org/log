@@ -5,10 +5,10 @@
 
 (defmodule LogRecord
   (defn pretty [r]
-    (fmt "%s:%d: %s" (file r) (line r) (msg r)))
+    (fmt "%s:%d: %s" (file r) @(line r) (msg r)))
 )
 
-(definterface log (Fn [a LogRecord] ()))
+(definterface log (Fn [(Ref a) (Ref LogRecord)] ()))
 
 (deftype NopLog [])
 
@@ -33,7 +33,7 @@
 
   (hidden priv-log)
   (defn priv-log [msg lvl file line]
-    (log &LOGGER (LogRecord.init lvl msg @file line)))
+    (log &LOGGER &(LogRecord.init lvl msg @file line)))
 
   (defmacro error [msg :rest args]
     (list 'Log.priv-log (list 'fmt msg args) 'Log.ERROR (file) (line)))
