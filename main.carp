@@ -4,8 +4,17 @@
                     line Int])
 
 (defmodule LogRecord
+  (defn level-str [r]
+    @(case @(level r)
+      5 "TRACE"
+      4 "DEBUG"
+      3 "INFO"
+      2 "WARN"
+      1 "ERROR"
+      "?"))
+
   (defn pretty [r]
-    (fmt "%s:%d: %s" (file r) @(line r) (msg r)))
+    (fmt "[%s] %s:%d: %s" (level-str r) (file r) @(line r) (msg r)))
 )
 
 (defmodule Log
