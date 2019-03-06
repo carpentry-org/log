@@ -16,8 +16,6 @@
   (def ERROR 1)
   (def OFF 0)
 
-  (defn log [r] ())
-
   (private LEVEL)
   (def LEVEL OFF)
 
@@ -25,12 +23,12 @@
   (defn set-level [lvl]
     (set! LEVEL lvl))
 
-  (private LOGGER)
-  (def LOGGER (the (Fn [(Ref LogRecord)] ()) log))
+  (private log)
+  (def log (the (Fn [(Ref LogRecord)] ()) (fn [r] ())))
 
   (doc set-level "Sets the logger.")
   (defn set-logger [logger]
-    (set! LOGGER logger))
+    (set! log logger))
 
   (hidden priv-log)
   (defn priv-log [msg lvl file line]
