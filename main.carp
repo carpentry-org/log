@@ -47,9 +47,9 @@
   (defndynamic log-dyn [msg args sev]
     (list 'Log.priv-log (cons 'fmt (cons msg args)) sev (eval (list 'file msg)) (eval (list 'line msg))))
 
-  (defmacro error [msg :rest args] (log-dyn msg args 'Log.ERROR))
-  (defmacro warn [msg :rest args] (log-dyn msg args 'Log.WARN))
-  (defmacro info [msg :rest args] (log-dyn msg args 'Log.INFO))
-  (defmacro debug [msg :rest args] (log-dyn msg args 'Log.DEBUG))
-  (defmacro trace [msg :rest args] (log-dyn msg args 'Log.TRACE))
+  (defmacro error [msg :rest args] (Log.log-dyn msg args 'Log.ERROR))
+  (defmacro warn [msg :rest args] (Log.log-dyn msg args 'Log.WARN))
+  (defmacro info [msg :rest args] (Log.log-dyn msg args 'Log.INFO))
+  (defmacro debug [msg :rest args] (Log.log-dyn msg args 'Log.DEBUG))
+  (defmacro trace [msg :rest args] (Log.log-dyn msg args 'Log.TRACE))
 )
