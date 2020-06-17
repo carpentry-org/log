@@ -45,16 +45,16 @@
       (log- &(LogRecord.init lvl msg @file line))))
 
   (defmacro error [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.ERROR (file) (line)))
+    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.ERROR (file msg) (line msg)))
 
   (defmacro warn [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.WARN (file) (line)))
+    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.WARN (file msg) (line msg)))
 
   (defmacro info [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.INFO (file) (line)))
+    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.INFO (file msg) (line msg)))
 
   (defmacro debug [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.DEBUG (file) (line)))
+    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.DEBUG (file msg) (line msg)))
 
   (defmacro trace [msg :rest args]
     (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.TRACE (file) (line)))
