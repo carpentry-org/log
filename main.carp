@@ -32,17 +32,17 @@
   (defn set-level [lvl]
     (set! LEVEL lvl))
 
-  (private log)
-  (def log (the (Fn [(Ref LogRecord)] ()) (fn [r] ())))
+  (private log-)
+  (def log- (the (Fn [(Ref LogRecord)] ()) (fn [r] ())))
 
-  (doc set-level "Sets the logger.")
+  (doc set-logger "Sets the logger.")
   (defn set-logger [logger]
-    (set! log logger))
+    (set! log- logger))
 
   (hidden priv-log)
   (defn priv-log [msg lvl file line]
     (when (<= lvl LEVEL)
-      (log &(LogRecord.init lvl msg @file line))))
+      (log- &(LogRecord.init lvl msg @file line))))
 
   (defmacro error [msg :rest args]
     (list 'Log.priv-log (list 'fmt msg args) 'Log.ERROR (file) (line)))
