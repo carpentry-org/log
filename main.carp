@@ -44,18 +44,12 @@
     (when (<= lvl LEVEL)
       (log- &(LogRecord.init lvl msg @file line))))
 
-  (defmacro error [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.ERROR (file msg) (line msg)))
+  (defndynamic log-dyn [msg args sev]
+    (list 'Log.priv-log (cons 'fmt (cons msg args)) sev (eval (list 'file msg)) (eval (list 'line msg))))
 
-  (defmacro warn [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.WARN (file msg) (line msg)))
-
-  (defmacro info [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.INFO (file msg) (line msg)))
-
-  (defmacro debug [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.DEBUG (file msg) (line msg)))
-
-  (defmacro trace [msg :rest args]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) 'Log.TRACE (file) (line)))
+  (defmacro error [msg :rest args] (log-dyn msg args 'Log.ERROR))
+  (defmacro warn [msg :rest args] (log-dyn msg args 'Log.WARN))
+  (defmacro info [msg :rest args] (log-dyn msg args 'Log.INFO))
+  (defmacro debug [msg :rest args] (log-dyn msg args 'Log.DEBUG))
+  (defmacro trace [msg :rest args] (log-dyn msg args 'Log.TRACE))
 )
