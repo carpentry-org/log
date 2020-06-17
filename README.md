@@ -12,7 +12,7 @@ There are multiple functions for you to use, depending on how important the
 message is:
 
 ```clojure
-(load "git@github.com:carpentry-org/log@0.0.8")
+(load "git@github.com:carpentry-org/log@0.0.9")
 
 (defn main []
   (do
