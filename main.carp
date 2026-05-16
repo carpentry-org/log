@@ -5,17 +5,10 @@
 
 (defmodule LogRecord
   (defn level-str [r]
-    (case @(level r)
-      5 @"TRACE"
-      4 @"DEBUG"
-      3 @"INFO"
-      2 @"WARN"
-      1 @"ERROR"
-      @"?"))
+    (case @(level r) 5 @"TRACE" 4 @"DEBUG" 3 @"INFO" 2 @"WARN" 1 @"ERROR" @"?"))
 
   (defn pretty [r]
-    (fmt "[%s] %s:%d: %s" &(level-str r) (file r) @(line r) (msg r)))
-)
+    (fmt "[%s] %s:%d: %s" &(level-str r) (file r) @(line r) (msg r))))
 
 (defmodule Log
   (def TRACE 5)
@@ -29,27 +22,27 @@
   (def LEVEL OFF)
 
   (doc set-level "Sets the log level.")
-  (defn set-level [lvl]
-    (set! LEVEL lvl))
+  (defn set-level [lvl] (set! LEVEL lvl))
 
   (private log-)
   (def log- (the (Fn [(Ref LogRecord)] ()) (fn [r] ())))
 
   (doc set-logger "Sets the logger.")
-  (defn set-logger [logger]
-    (set! log- logger))
+  (defn set-logger [logger] (set! log- logger))
 
   (hidden priv-log)
   (defn priv-log [msg lvl file line]
-    (when (<= lvl LEVEL)
-      (log- &(LogRecord.init lvl msg @file line))))
+    (when (<= lvl LEVEL) (log- &(LogRecord.init lvl msg @file line))))
 
   (defndynamic log-dyn [msg args sev]
-    (list 'Log.priv-log (cons 'fmt (cons msg args)) sev (eval (list 'file msg)) (eval (list 'line msg))))
+    (list 'Log.priv-log
+          (cons 'fmt (cons msg args))
+          sev
+          (eval (list 'file msg))
+          (eval (list 'line msg))))
 
   (defmacro error [msg :rest args] (Log.log-dyn msg args 'Log.ERROR))
   (defmacro warn [msg :rest args] (Log.log-dyn msg args 'Log.WARN))
   (defmacro info [msg :rest args] (Log.log-dyn msg args 'Log.INFO))
   (defmacro debug [msg :rest args] (Log.log-dyn msg args 'Log.DEBUG))
-  (defmacro trace [msg :rest args] (Log.log-dyn msg args 'Log.TRACE))
-)
+  (defmacro trace [msg :rest args] (Log.log-dyn msg args 'Log.TRACE)))
