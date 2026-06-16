@@ -4,9 +4,12 @@
                     line Int])
 
 (defmodule LogRecord
+  (doc level-str
+    "Returns the string representation of the log level of a LogRecord.")
   (defn level-str [r]
     (case @(level r) 5 @"TRACE" 4 @"DEBUG" 3 @"INFO" 2 @"WARN" 1 @"ERROR" @"?"))
 
+  (doc pretty "Formats a LogRecord as a human-readable string.")
   (defn pretty [r]
     (fmt "[%s] %s:%d: %s" &(level-str r) (file r) @(line r) (msg r))))
 
@@ -41,8 +44,13 @@
           (eval (list 'file msg))
           (eval (list 'line msg))))
 
+  (doc error "Logs a formatted message at ERROR level.")
   (defmacro error [msg :rest args] (Log.log-dyn msg args 'Log.ERROR))
+  (doc warn "Logs a formatted message at WARN level.")
   (defmacro warn [msg :rest args] (Log.log-dyn msg args 'Log.WARN))
+  (doc info "Logs a formatted message at INFO level.")
   (defmacro info [msg :rest args] (Log.log-dyn msg args 'Log.INFO))
+  (doc debug "Logs a formatted message at DEBUG level.")
   (defmacro debug [msg :rest args] (Log.log-dyn msg args 'Log.DEBUG))
+  (doc trace "Logs a formatted message at TRACE level.")
   (defmacro trace [msg :rest args] (Log.log-dyn msg args 'Log.TRACE)))
