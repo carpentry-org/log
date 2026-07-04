@@ -3,12 +3,22 @@
 
 (use Test)
 
-; A capturing backend so we can observe which log calls actually fire.
+; A capturing backend so we can observe which log calls actually fire and, for
+; the ones that do, what level and message the forwarded record carried.
 (defmodule Capture
   (def n 0)
-  (defn reset! [] (set! Capture.n 0))
+  (def last-level 0)
+  (def last-msg @"")
+  (defn reset! []
+    (do
+      (set! Capture.n 0)
+      (set! Capture.last-level 0)
+      (set! Capture.last-msg @"")))
   (defn record [r]
-    (do (ignore (LogRecord.level r)) (set! Capture.n (inc Capture.n)))))
+    (do
+      (set! Capture.last-level @(LogRecord.level r))
+      (set! Capture.last-msg @(LogRecord.msg r))
+      (set! Capture.n (inc Capture.n)))))
 
 (deftest test
   ; level-str maps every known severity to its name.
@@ -54,7 +64,8 @@
     "[ERROR] a.carp:1: boom"
     &(LogRecord.pretty &(LogRecord.init Log.ERROR @"boom" @"a.carp" 1))
     "pretty ERROR record")
-  ; Gating: priv-log only forwards records at or above the configured level.
+  ; Gating: priv-log only forwards records at or above the configured level,
+  ; and each record it does forward carries that call's level and message.
   (do
     (Log.set-logger Capture.record)
     (Log.set-level Log.WARN)
@@ -64,7 +75,14 @@
     (Log.info "i")
     (assert-equal test 0 Capture.n "trace/debug/info are suppressed at WARN"))
   (do (Log.warn "w") (assert-equal test 1 Capture.n "warn fires at WARN"))
+  (assert-equal test Log.WARN Capture.last-level "warn forwards a WARN record")
+  (assert-equal test "w" &Capture.last-msg "warn forwards its message")
   (do (Log.error "e") (assert-equal test 2 Capture.n "error fires at WARN"))
+  (assert-equal test
+    Log.ERROR
+    Capture.last-level
+    "error forwards an ERROR record")
+  (assert-equal test "e" &Capture.last-msg "error forwards its message")
   (do
     (Log.set-level Log.OFF)
     (Capture.reset!)
@@ -78,4 +96,63 @@
     (Log.info "i")
     (Log.warn "w")
     (Log.error "e")
-    (assert-equal test 5 Capture.n "every level fires at TRACE")))
+    (assert-equal test 5 Capture.n "every level fires at TRACE"))
+  ; Forwarding: with everything enabled, each macro must hand the backend a
+  ; record carrying its own level and the fully formatted message (fmt
+  ; arguments included), not just bump the counter.
+  (do
+    (Log.set-level Log.TRACE)
+    (Capture.reset!)
+    (Log.error "boom %d" 1)
+    (assert-equal test
+      Log.ERROR
+      Capture.last-level
+      "error forwards the ERROR level"))
+  (assert-equal test
+    "boom 1"
+    &Capture.last-msg
+    "error forwards the formatted message")
+  (do
+    (Capture.reset!)
+    (Log.warn "boom %d" 2)
+    (assert-equal test
+      Log.WARN
+      Capture.last-level
+      "warn forwards the WARN level"))
+  (assert-equal test
+    "boom 2"
+    &Capture.last-msg
+    "warn forwards the formatted message")
+  (do
+    (Capture.reset!)
+    (Log.info "boom %d" 3)
+    (assert-equal test
+      Log.INFO
+      Capture.last-level
+      "info forwards the INFO level"))
+  (assert-equal test
+    "boom 3"
+    &Capture.last-msg
+    "info forwards the formatted message")
+  (do
+    (Capture.reset!)
+    (Log.debug "boom %d" 4)
+    (assert-equal test
+      Log.DEBUG
+      Capture.last-level
+      "debug forwards the DEBUG level"))
+  (assert-equal test
+    "boom 4"
+    &Capture.last-msg
+    "debug forwards the formatted message")
+  (do
+    (Capture.reset!)
+    (Log.trace "boom %d" 5)
+    (assert-equal test
+      Log.TRACE
+      Capture.last-level
+      "trace forwards the TRACE level"))
+  (assert-equal test
+    "boom 5"
+    &Capture.last-msg
+    "trace forwards the formatted message"))
