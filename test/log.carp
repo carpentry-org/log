@@ -20,6 +20,11 @@
       (set! Capture.last-msg @(LogRecord.msg r))
       (set! Capture.n (inc Capture.n)))))
 
+(defmodule Effect
+  (def n 0)
+  (defn reset! [] (set! Effect.n 0))
+  (defn bump [] (do (set! Effect.n (inc Effect.n)) Effect.n)))
+
 (deftest test
   ; level-str maps every known severity to its name.
   (assert-equal test
@@ -155,4 +160,75 @@
   (assert-equal test
     "boom 5"
     &Capture.last-msg
-    "trace forwards the formatted message"))
+    "trace forwards the formatted message")
+  ; enabled? at each severity boundary of the configured level.
+  (do
+    (Log.set-level Log.OFF)
+    (assert-false test (Log.enabled? Log.ERROR) "OFF disables ERROR"))
+  (assert-false test (Log.enabled? Log.TRACE) "OFF disables TRACE")
+  (do
+    (Log.set-level Log.ERROR)
+    (assert-true test (Log.enabled? Log.ERROR) "ERROR enables ERROR"))
+  (assert-false test (Log.enabled? Log.WARN) "ERROR disables WARN")
+  (do
+    (Log.set-level Log.WARN)
+    (assert-true test (Log.enabled? Log.WARN) "WARN enables WARN"))
+  (assert-false test (Log.enabled? Log.INFO) "WARN disables INFO")
+  (do
+    (Log.set-level Log.INFO)
+    (assert-true test (Log.enabled? Log.INFO) "INFO enables INFO"))
+  (assert-false test (Log.enabled? Log.DEBUG) "INFO disables DEBUG")
+  (do
+    (Log.set-level Log.DEBUG)
+    (assert-true test (Log.enabled? Log.DEBUG) "DEBUG enables DEBUG"))
+  (assert-false test (Log.enabled? Log.TRACE) "DEBUG disables TRACE")
+  (do
+    (Log.set-level Log.TRACE)
+    (assert-true test (Log.enabled? Log.TRACE) "TRACE enables TRACE"))
+  ; Suppressed calls must not evaluate their arguments; enabled ones must.
+  (do
+    (Log.set-level Log.OFF)
+    (Effect.reset!)
+    (Log.error "%d" (Effect.bump))
+    (assert-equal test 0 Effect.n "error skips its arguments when suppressed"))
+  (do
+    (Effect.reset!)
+    (Log.warn "%d" (Effect.bump))
+    (assert-equal test 0 Effect.n "warn skips its arguments when suppressed"))
+  (do
+    (Effect.reset!)
+    (Log.info "%d" (Effect.bump))
+    (assert-equal test 0 Effect.n "info skips its arguments when suppressed"))
+  (do
+    (Effect.reset!)
+    (Log.debug "%d" (Effect.bump))
+    (assert-equal test 0 Effect.n "debug skips its arguments when suppressed"))
+  (do
+    (Effect.reset!)
+    (Log.trace "%d" (Effect.bump))
+    (assert-equal test 0 Effect.n "trace skips its arguments when suppressed"))
+  (do
+    (Log.set-level Log.TRACE)
+    (Effect.reset!)
+    (Log.error "%d" (Effect.bump))
+    (assert-equal test 1 Effect.n "error evaluates its arguments when enabled"))
+  (do
+    (Effect.reset!)
+    (Log.warn "%d" (Effect.bump))
+    (assert-equal test 1 Effect.n "warn evaluates its arguments when enabled"))
+  (do
+    (Effect.reset!)
+    (Log.info "%d" (Effect.bump))
+    (assert-equal test 1 Effect.n "info evaluates its arguments when enabled"))
+  (do
+    (Effect.reset!)
+    (Log.debug "%d" (Effect.bump))
+    (assert-equal test 1 Effect.n "debug evaluates its arguments when enabled"))
+  (do
+    (Effect.reset!)
+    (Log.trace "%d" (Effect.bump))
+    (assert-equal test 1 Effect.n "trace evaluates its arguments when enabled"))
+  (assert-equal test
+    "1"
+    &Capture.last-msg
+    "an enabled call formats the evaluated argument"))

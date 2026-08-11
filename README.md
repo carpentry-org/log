@@ -32,6 +32,20 @@ The complete set of functions, in order of severity, is:
 - `warn`
 - `error`
 
+## Evaluation
+
+A log statement that the current level suppresses costs one integer comparison.
+The level is checked before the message is formatted, so no string is built and,
+importantly, the arguments are not evaluated at all: argument expressions with
+side effects will not run while the level suppresses the call.
+
+To skip work that isn’t itself a log call, ask `Log.enabled?` directly:
+
+```clojure
+(when (Log.enabled? Log.DEBUG)
+  (dump-diagnostics &state))
+```
+
 ## Backends
 
 A non-exhaustive list of logging backends:
