@@ -27,6 +27,9 @@
   (doc set-level "Sets the log level.")
   (defn set-level [lvl] (set! LEVEL lvl))
 
+  (doc enabled? "Checks whether messages at level `lvl` are currently logged.")
+  (defn enabled? [lvl] (<= lvl LEVEL))
+
   (private log-)
   (def log- (the (Fn [(Ref LogRecord)] ()) (fn [r] ())))
 
@@ -35,22 +38,34 @@
 
   (hidden priv-log)
   (defn priv-log [msg lvl file line]
-    (when (<= lvl LEVEL) (log- &(LogRecord.init lvl msg @file line))))
+    (when (enabled? lvl) (log- &(LogRecord.init lvl msg @file line))))
 
   (defndynamic log-dyn [msg args sev]
-    (list 'Log.priv-log
-          (cons 'fmt (cons msg args))
-          sev
-          (eval (list 'file msg))
-          (eval (list 'line msg))))
+    (list 'when
+          (list 'Log.enabled? sev)
+          (list 'Log.priv-log
+                (cons 'fmt (cons msg args))
+                sev
+                (eval (list 'file msg))
+                (eval (list 'line msg)))))
 
-  (doc error "Logs a formatted message at ERROR level.")
+  (doc error
+    "Logs a formatted message at ERROR level."
+    "The arguments are not evaluated unless ERROR is enabled.")
   (defmacro error [msg :rest args] (Log.log-dyn msg args 'Log.ERROR))
-  (doc warn "Logs a formatted message at WARN level.")
+  (doc warn
+    "Logs a formatted message at WARN level."
+    "The arguments are not evaluated unless WARN is enabled.")
   (defmacro warn [msg :rest args] (Log.log-dyn msg args 'Log.WARN))
-  (doc info "Logs a formatted message at INFO level.")
+  (doc info
+    "Logs a formatted message at INFO level."
+    "The arguments are not evaluated unless INFO is enabled.")
   (defmacro info [msg :rest args] (Log.log-dyn msg args 'Log.INFO))
-  (doc debug "Logs a formatted message at DEBUG level.")
+  (doc debug
+    "Logs a formatted message at DEBUG level."
+    "The arguments are not evaluated unless DEBUG is enabled.")
   (defmacro debug [msg :rest args] (Log.log-dyn msg args 'Log.DEBUG))
-  (doc trace "Logs a formatted message at TRACE level.")
+  (doc trace
+    "Logs a formatted message at TRACE level."
+    "The arguments are not evaluated unless TRACE is enabled.")
   (defmacro trace [msg :rest args] (Log.log-dyn msg args 'Log.TRACE)))
